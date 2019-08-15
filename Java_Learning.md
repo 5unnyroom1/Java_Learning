@@ -98,7 +98,7 @@ xxx
 >
 > 以@开头东东被称之为Javadoc文档标记，是JDK定义好的，如@author、@version、@since、@see、@link、@code、@param、@return、@exception、@throws等。
 
-### 变量与数据类型
+### 变量
 
 Java 语言是一门强类型语言。
 
@@ -109,6 +109,7 @@ Java 语言是一门强类型语言。
   - 不能以数字开头
   - 不能直接使用`_`作为变量名
   - 不能与 Java 关键字同名
+- 被 final 修饰的变量只能被赋值一次
 
 ```java
 type varName[ = initValue];
@@ -182,11 +183,17 @@ boolean 代表布尔型，占用 8 bits ，使用 true / false 表示
 
 ![1565522372900](Java_Learning.assets/1565522372900.png)
 
+#### 数组
+
+#### 类和接口
+
 ### 运算符 
 
 #### 比较运算符
 
 ### 流程控制
+
+#### if
 
 ## 类与对象
 
@@ -213,11 +220,6 @@ boolean 代表布尔型，占用 8 bits ，使用 true / false 表示
 - 构造器负责创建对象
 
 ```java
-//类定义的模板
-[package <包名>;]
-[import xxx;]
-[import static xxx;]
-
 [<修饰符>] class <类名> extends <父类名> implements <接口名> {
     [<修饰符>] <类型> <变量名> [ = <默认值>]; //变量
     [static] {...} //初始化块
@@ -254,6 +256,8 @@ mc.xxx();
 #### 变量成员
 
 在类中定义的变量称为变量成员。
+
+- 如果想让某个变量成员只允许赋值一次，可以使用 final 修饰。
 
 > **局部变量**：在代码块`{...}`中定义的变量只在代码块中生效，并且必须先显式初始化才能使用。流程控制、方法、构造器等充斥着很多代码块，代码块也可以单独使用，可以有效释放不用的变量空间。
 >
@@ -302,6 +306,8 @@ mc.xxx();
 
 > 外部类也可以使用访问控制符来修饰，支持 public 和 default。当外部类使用 public 修饰时，文件名必须和该类名一致，因此一个源文件中只能有一个 public 类。
 
+#### 包机制
+
 ### 继承
 
 - 类的封装会暴露一些属性或者行为，这些都可以被子类继承
@@ -309,7 +315,7 @@ mc.xxx();
 - 在构造器中，this(xxx) 调用其他构造器，super(xxx) 调用父类构造器。
 - 被 final 修饰的类不可以被继承。
 
-> 引用类型转换
+> 继承与组合
 
 #### 抽象类
 
@@ -319,13 +325,12 @@ mc.xxx();
 
 ![1565699780886](Java_Learning.assets/1565699780886.png)
 
-> Java 是强类型语言，引用变量都有类型属性，这个被称为编译时类型，当对变量赋值时，所指向的类型属性被称为运行时类型。只有当运行时类型是编译时类型的子类或者本身，才能通过编译。
+> Java 是强类型语言，引用变量都有类型属性，这个被称为编译时类型，当对变量赋值时，所指向的类型属性被称为运行时类型。运行时类型必须是编译时类型的子类或者本身。
 
 可以通过变量调用编译时类型的方法，但如果运行时类型重写了编译时类型的方法，则变量会优先调用运行时类型的方法。由于运行时类型不固定，相同类型的变量在调用同一个方法时就可能表现出不同的行为特征，这就是多态。
 
-> 多态只适用于成员方法，对于成员变量来说，不会优先访问运行时类型的重名成员变量。
-
-如果不想让某一个成员方法表现出多态的特性，可以用 final 修饰，阻止方法被重写。
+- 多态只适用于成员方法，对于成员变量来说，不会优先访问运行时类型的重名成员变量。
+- 如果不想让某一个成员方法表现出多态的特性，可以用 final 修饰，阻止方法被重写。
 
 > **强制类型转换**
 >
@@ -439,10 +444,74 @@ MyClass<? super Child> mc = new MyClass<Father>();
   ...
   ```
 
-
 ### 异常处理
 
-## Java 基础类库
+|              | 含义                  | 程序流   |
+| ------------ | --------------------- | -------- |
+| Checked 异常 | 继承 Exception        | 强制处理 |
+| Runtime 异常 | 继承 RuntimeException | 无需处理 |
+
+#### 异常处理机制
+
+```java
+class MyClass {
+    //方法、构造器
+    xxx xxx xxx(xxx) throws XxxException {
+        //...
+        try {
+            //...
+        } catch (XxxException e1) {
+            //...
+        } catch (XxxException e2) {
+            //...
+        } finally {
+            //...
+        }
+    }
+}
+```
+
+1. try `()` 中创建可自动回收的资源
+2. 运行 try 块代码
+3. 遇到异常，不再继续执行 try 块，依次寻找 catch 块是否与异常匹配
+4. 如果匹配，则执行相应的 catch 块，再执行 finally 块
+5. 如果未匹配，则直接执行 finally 块
+6. 方法体可以继续抛出未处理的异常，交给外部程序处理。
+
+> Check 异常必须被 catch 或者被 throws 。Runtime 异常则没有限制，但是如果没有得到处理，将直接终止程序运行。
+
+> 如果 catch 的多个异常中有父子关系，需将子类异常放到前面。
+
+> 方法体抛出异常，当重写该方法时，抛出的异常只能更小，且只能更少。
+
+#### 异常类
+
+![1565832450216](Java_Learning.assets/1565832450216.png)
+
+Throwable 常用方法：
+
+- `String getMessage()` 返回此throwable的详细消息字符串。
+- `void printStackTrace()` 将此throwable和其追溯打印到标准错误流。
+- `void printStackTrace(PrintStream s)` 将此throwable和其追溯打印到指定的打印流。
+
+自定义异常类：
+
+```java
+public class MyException extends Exception/RuntimeException/XxxException {
+    public MyException() {}
+    public MyException(String msg) {
+        super(msg);
+    }
+}
+```
+
+#### 可自动回收资源
+
+### 注解
+
+## Java 基础类
+
+### System
 
 ### Object
 
@@ -503,7 +572,15 @@ MyClass<? super Child> mc = new MyClass<Father>();
 >   - `Integer.parseInt("123")`
 >   - `Integer.valueof("123")`
 
-### 集合类
+### 数学类
+
+### 日期时间类
+
+### 正则表达式
+
+### 国际化
+
+## 集合
 
 Java集合被用作对象元素的容器，特点如下：
 
@@ -513,7 +590,7 @@ Java集合被用作对象元素的容器，特点如下：
 
 根据元素有无映射关系，集合类拥有两个根接口：Collection 和 Map
 
-#### Collection
+### Collection
 
 - `boolean add(E e)`
 - `boolean addAll(Collection<? extends E> c)`
@@ -534,7 +611,7 @@ Java集合被用作对象元素的容器，特点如下：
 
 
 
-#### Set
+### Set
 
 Collection 的子接口，但没有提供任何多余的方法，只是实现上，Set 不允许添加重复元素。
 
@@ -592,7 +669,7 @@ Set 的子接口：
 
   > `Comparator<T>` 是函数式接口，方法体为`int compare(T t1, T t2)`
 
-#### List
+### List
 
 Collection 的子接口，要求元素有序，且可以通过索引进行集合操作
 
@@ -615,7 +692,7 @@ List 最常用的实现类，是基于可更新数组来实现的
 
 
 
-#### Queue
+### Queue
 
 Collection 的子接口，用于模拟添加和取出操作
 
@@ -645,7 +722,7 @@ Deque的数组实现是`ArrayDeque`，链表实现是`LinkedList`
 
 
 
-#### Map<K,V>
+### Map<K,V>
 
 用于保存有映射关系的数据
 
@@ -669,7 +746,7 @@ Deque的数组实现是`ArrayDeque`，链表实现是`LinkedList`
 
 
 
-#### 集合元素的遍历
+### 集合元素的遍历
 
 #### Collection 遍历
 
@@ -692,16 +769,6 @@ Deque的数组实现是`ArrayDeque`，链表实现是`LinkedList`
   > - `void set(T t)`
 
 - `for(T t: collection_of_t) { ... }`
-
-### 数学类
-
-### 日期时间类
-
-### 正则表达式
-
-
-
-## 集合
 
 ## JDBC
 
@@ -1345,11 +1412,11 @@ Object 类提供了三个方法用于实现通信，前提是对象必须被当�
 
 
 
+## 网络编程
 
+## 深入理解类
 
-## 反射
-
-在运行状态中，对于任意一个类，都能够获取到这个类的所有属性和方法，对于任意一个对象，都能够调用它的任意一个方法和属性(包括私有的方法和属性)，这种动态获取的信息以及动态调用对象的方法的功能就称为java语言的反射机制。
+在运行状态中，对于任意一个类，都能够获取到这个类的所有属性和方法，对于任意一个对象，都能够调用它的任意一个方法和属性(包括私有的方法和属性)，这种动态获取的信息以及动态调用对象的方法的功能就称为反射。
 
 ![](/home/sunny/Pictures/Screenshot from 2019-05-09 07-57-37.png)
 
