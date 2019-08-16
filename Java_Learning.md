@@ -681,7 +681,31 @@ public class MyException extends Exception/RuntimeException/XxxException {
 
 ### 注解
 
+![1565943858961](Java_Learning.assets/1565943858961.png)
 
+对于小型项目来说，开发的类集通常直接拿来用即可，但是这种项目随着规模不断扩大，会出现功能单一、扩展性差的问题。现代化的工程项目中，用户扮演的往往是加工的“小角色”，它不仅需要使用其中的功能类实现某种功能，还需要使用工具类进行后处理，才能得出想要的结果。而注解就可以轻松地完成“加工”的过程。
+
+注解是代码里的代码元素的特殊标记，可以在编译、类加载、运行时被读取，并作出相应的处理。
+
+```java
+public @interface $注解名 {
+    //定义多个注解
+    $数据类型 $数据名();
+    $数据类型 $数据名() default xxx;
+}
+//注解的使用
+$注解名($数据名=xxx,...)
+```
+
+写在代码元素之前的注解可以被读取到。代码元素类 Class、Constructor、Field、Method、Package，都实现了注解元素接口，可以通过其中的方法获取注解：
+
+- `default boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)` 判断是否存在
+- `<T extends Annotation> T getAnnotation(Class<T> annotationClass)` 获取
+- `<T extends Annotation> T getAnnotations()` 获取全部
+
+获取注解后可通过 `注解对象.$数据名()` 访问元数据信息。
+
+#### 内置注解
 
 ## Java 基础类
 
