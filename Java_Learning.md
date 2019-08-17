@@ -394,6 +394,7 @@ mc.xxx();
 
 可以通过变量调用编译时类型的方法，但如果运行时类型重写了编译时类型的方法，则变量会优先调用运行时类型的方法。由于运行时类型不固定，相同类型的变量在调用同一个方法时就可能表现出不同的行为特征，这就是多态。
 
+- 方法重写必须满足，形参列表相同，返回值类型相同或更小，访问控制符相同或更大，捕获的异常类型相同或者更小，异常数量相同或更少。
 - 多态只适用于成员方法，对于成员变量来说，不会优先访问运行时类型的重名成员变量。
 - 如果不想让某一个成员方法表现出多态的特性，可以用 final 修饰，阻止方法被重写。
 
@@ -683,7 +684,7 @@ public class MyException extends Exception/RuntimeException/XxxException {
 
 ![1565943858961](Java_Learning.assets/1565943858961.png)
 
-对于小型项目来说，开发的类集通常直接拿来用即可，但是这种项目随着规模不断扩大，会出现功能单一、扩展性差的问题。现代化的工程项目中，用户扮演的往往是加工的“小角色”，它不仅需要使用其中的功能类实现某种功能，还需要使用工具类进行后处理，才能得出想要的结果。而注解就可以轻松地完成“加工”的过程。
+对于小型项目来说，开发的类集通常直接拿来用即可，但是这种项目随着规模不断扩大，会出现功能单一、扩展性差的问题。现代化的工程项目中，用户扮演的往往是加工的“小角色”，它不仅需要使用其中的功能类实现某种功能，还需要使用工具类根据配置信息进行后处理，才能得出想要的结果。而注解就可以轻松地完成“加工”的过程。
 
 注解是代码里的代码元素的特殊标记，可以在编译、类加载、运行时被读取，并作出相应的处理。
 
@@ -782,13 +783,17 @@ $注解名($数据名=xxx,...)
 
 Java集合被用作对象元素的容器，特点如下：
 
-- 可以存储数量不等的对象
+- 可以存储数量不等的对象，但不支持存储基本类型
 - 封装了常用的数据结构，功能丰富
 - 支持泛型元素
 
-根据元素有无映射关系，集合类拥有两个根接口：Collection 和 Map
+根据元素**有无映射关系**，集合类拥有两个根接口：Collection 和 Map
 
 ### Collection
+
+![1566008108534](Java_Learning.assets/1566008108534.png)
+
+Collection 接口的主要方法：
 
 - `boolean add(E e)`
 - `boolean addAll(Collection<? extends E> c)`
@@ -796,80 +801,75 @@ Java集合被用作对象元素的容器，特点如下：
 - `boolean contains(Object o)`
 - `boolean containsAll(Collection<?> c)`
 - `boolean isEmpty()`
-- `Iterator<E> iterator()`获取迭代器
-- `default Spliterator<E> spliterator()`可分割迭代器，用于并行遍历
+- `Iterator<E> iterator()`
 - `boolean remove(Object o)`
 - `boolean removeAll(Collection<?> c)`
 - `default boolean removeIf(Predicate<? super E> filter)`
 - `boolean retainAll(Collection<?> c)`
 - `int size()`
-- `default Stream<E> stream()`流
-- `Object[] toArray()`
-- `<T> T[] toArray(T[] a)`
 
+#### Set
 
+没有提供任何多余的方法，只是实现上，Set 不允许添加重复元素。
 
-### Set
+> 当可变元素添加到Set中时，通常不建议改变元素的属性。
 
-Collection 的子接口，但没有提供任何多余的方法，只是实现上，Set 不允许添加重复元素。
+##### HashSet
 
-> 当可变元素添加到Set中时，通常不建议改变元素的核心属性，否则可能会使元素重复而引起不必要的麻烦
-
-#### HashSet
-
-Set 最常用的实现类，利用 Hash 算法进行实现，要求元素必须有合理的 `hashCode()`和 `equals()`方法
+HashSet 利用 Hash 算法进行实现，通过 `hashCode()`和 `equals()`两个方法判断元素是否相等。
 
 > **`hashCode()`方法**
 >
-> 合理编写该方法将有效提高集合性能，编写步骤：
+> 该方法是 Object 的方法，重写方法如下：
 >
 > 1. 计算对象中每一个有意义的实例变量的哈希值
 >
->    | 实例变量类型           | 计算方式                                     |
->    | ---------------------- | -------------------------------------------- |
->    | boolean                | `(f?1:0)`                                    |
->    | byte、short、char、int | `(int)f`                                     |
->    | long                   | `(int)(f^(f>>>32))`                          |
->    | float                  | `Float.floatToIntBits(f)`                    |
->    | double                 | `Double.doubleToLongBits(f)`(再用long的方法) |
->    | 引用类型               | `f.hashCode()`                               |
+> | 实例变量类型           | 计算方式                                     |
+> | ---------------------- | -------------------------------------------- |
+> | boolean                | `(f?1:0)`                                    |
+> | byte、short、char、int | `(int)f`                                     |
+> | long                   | `(int)(f^(f>>>32))`                          |
+> | float                  | `Float.floatToIntBits(f)`                    |
+> | double                 | `Double.doubleToLongBits(f)`(再用long的方法) |
+> | 引用类型               | `f.hashCode()`                               |
 >
 > 2. 对每一个哈希值乘以不同的质数再相加，即可得到最终的哈希值
 
-#### LinkedHashSet
+> 当两个对象通过equals()方法比较返回true时，这两个对象的hashCode()方法返回值应该相等。
 
-对HashSet进行封装，利用链表的方式维护元素的添加顺序。
+###### LinkedHashSet
 
-#### SortedSet
+LinkedHashSet 对 HashSet 进行封装，利用链表的方式维护元素的添加顺序。
 
-Set 的子接口：
+##### SortedSet
 
-- `Comparator<? super E> comparator()`获取比较器
+SortedSet 接口的主要方法：
+
 - `E first()`
 - `E lase()`
-- `SortedSet<E> headSet(E toElement)`截取前部分
-- `SortedSet<E> subSet(E fromElement, E toElement)`截取中部分
-- `SortedSet<E> tailSet(E fromElement)`截取后部分
+- `SortedSet<E> headSet(E toElement)`截取前部分（不包含 to）
+- `SortedSet<E> subSet(E fromElement, E toElement)`截取中部分（包含 from ，不包含 to）
+- `SortedSet<E> tailSet(E fromElement)`截取后部分（包含 from）
+- `Comparator<? super E> comparator()` 如果使用定制排序，则返回比较器对象，否则返回 null
 
-#### TreeSet
+###### TreeSet
 
-最常用的 SortedSet 的实现类，利用红黑树算法实现，元素必须实现 `Comparable`接口。
+TreeSet 利用红黑树算法实现。
 
-> `Comparable`接口使得对象可比较，方法体为 `int compareTo(Object obj)`
->
-> `o1.compareTo(o2)`返回正数表示o1>o2
->
-> 另外建议一并重写 `equals()`方法
+- `E lower(E e)`
+- `E higher(E e)`
 
-- 自然排序，利用元素的`compareTo`方法进行排序
+###### 排序
 
-- 定制排序，利用自带的`Comparator`比较器进行排序
+- 自然排序：元素需要实现 `Comparable` 接口的唯一方法`int compareTo(T o)`
 
-  > `Comparator<T>` 是函数式接口，方法体为`int compare(T t1, T t2)`
+- 定制排序：利用构造器传入指定的 `Comparator`比较器对象
 
-### List
+  > `Comparator<T>` 是函数式接口，唯一方法为`int compare(T t1, T t2)`
 
-Collection 的子接口，要求元素有序，且可以通过索引进行集合操作
+#### List
+
+要求元素有序，可以通过索引进行集合操作，主要方法有：
 
 - `void add(int index, E element)`
 - `boolean addAll(int index, Collection<? extends E> c)`
@@ -880,69 +880,110 @@ Collection 的子接口，要求元素有序，且可以通过索引进行集合
 - `E get(int index)`
 - `default void sort(Comparator<? super E> c)`
 - `ListIterator<E> listIterator()`
+- `List<E> subList(int fromIndex, int toIndex)`
 
-#### ArrayList
+##### ArrayList
 
-List 最常用的实现类，是基于可更新数组来实现的
+ArrayList 基于可更新数组来实现
 
 - `void ensureCapacity(int minCapacity)`
-- `void trimToSize()`
+- `void trimToSize()` 使数组长度等于集合长度
 
+#### Queue
 
+表示一个队列，主要方法有：
 
-### Queue
+- `boolean offer(E e)`
+- `E poll()`
+- `E peek()`
 
-Collection 的子接口，用于模拟添加和取出操作
-
-- `boolean offer(E e)`当队列已满时，不抛出异常
-- `boolean add(E e)`当队列已满时，抛出`IllegalStateException`
-- `E poll()`当队列为空时，返回 null
-- `E remove()`当队列为空时，抛出`NoSuchElementException`
-- `E peek()`当队列为空时，返回 null
-- `E element()`当队列为空时，抛出`NoSuchElementException`
-
-#### PriorityQueue
+##### PriorityQueue
 
 优先队列，采用小顶堆的算法实现，和 TreeSet 一样可以使用自然排序和定制排序
 
-#### Deque
+##### Deque
 
-双端队列接口，是队列 Queue 的子接口
+表示一个双端队列，主要方法有：
 
-- `[void|boolean] [add|offer][First|Last](E e)`
-- `E [remove|poll][First|Last]()`
-- `E [get|peek][First|Last]()`
-- ...参考API
+- `void push(E e)`
+- `E pop()`
 
-#### ArrayDeque   LinkedList
+###### ArrayDeque
 
-Deque的数组实现是`ArrayDeque`，链表实现是`LinkedList`
+Deque的数组实现是`ArrayDeque`。
 
+###### LinkedList
 
+Deque的链表实现是`LinkedList`，同时它也实现了 List 接口。
 
-### Map<K,V>
+### Map
 
-用于保存有映射关系的数据
+![1566032722574](Java_Learning.assets/1566032722574.png)
+
+主要方法有：
 
 - `void clear()`
+
 - `boolean containsKey(Object key)`
+
 - `boolean containsValue(Object value)`
+
 - `V get(Object key)`
+
 - `boolean isEmpty()`
+
 - `Set<K> keySet()`
+
 - `Set<Map.Entry<K,V>> entrySet()`
-  - (Map.Entry) `K getKey()`
-  - (Map.Entry) `V getValue()`
-  - (Map.Entry) `V setValue(V value)`
+  
+  > Map.Entry 是 Map 的内部类，主要的方法有：
+  >
+  > - (Map.Entry) `K getKey()`
+  > - (Map.Entry) `V getValue()`
+  > - (Map.Entry) `V setValue(V value)`
+  
 - `V put(K key, V value)`
+
 - `void putAll(Map m)`
+
 - `V remove(Object key)`
+
 - `int size()`
+
 - `Collection<V> values()`
 
+> 集合与 null 元素
 
+#### HashMap
 
+HashMap 利用 Hash 算法进行实现，通过 `hashCode()`和 `equals()`两个方法判断 Key 元素是否相等，通过`equals()`判断 Value 元素是否相等。
 
+##### LinkedHashMap
+
+LinkedHashMap 对 HashMap 进行封装，利用链表的方式维护映射元素的添加顺序。
+
+#### SortedMap
+
+主要方法有：
+
+- `Comparator<? super K> comparator()`
+- `SortedMap<K,V> subMap(K fromKey, K toKey)`
+- `SortedMap<K,V> headMap(K toKey)`
+- `SortedMap<K,V> subMap(K fromKey, K toKey)`
+- `SortedMap<K,V> tailMap(K fromKey)`
+- `K firstKey()`
+- `K lastKey()`
+
+##### TreeMap
+
+TreeMap 利用红黑树算法实现。
+
+- `K lowerKey(K e)`
+- `K higherKey(K e)`
+- `Map.Entry<K,V> lowerEntry(K e)`
+- `Map.Entry<K,V> higherEntry(K e)`
+- `Map.Entry<K,V> firstEntry()`
+- `Map.Entry<K,V> lastEntry()`
 
 ### 集合元素的遍历
 
@@ -967,6 +1008,46 @@ Deque的数组实现是`ArrayDeque`，链表实现是`LinkedList`
   > - `void set(T t)`
 
 - `for(T t: collection_of_t) { ... }`
+
+#### foreach 遍历
+
+```java
+//for语句形式
+for (E e: $(Iterable对象)) { ... }
+//方法形式
+$(Iterable对象).forEach(obj -> {...});
+```
+
+#### Iterator 遍历
+
+Iterator 迭代器接口
+
+- `boolean hasNext()`
+- `T next()`
+- `void remove()`
+- `default void forEachRemaining(Consumer<? super T> action)`
+
+```java
+Iterator<Xxx> it = ...;
+while (it.hasNext()) {
+    Xxx obj = it.next();
+    ...
+}
+//简化形式
+Iterator<Xxx> it = ...;
+it.forEachRemaining(obj -> {...});
+```
+
+> ListIterator是 Iterator 的子接口
+>
+> - `boolean hasPrevious()`
+> - `T previous()`
+> - `void add(T t)`
+> - `void set(T t)`
+
+### Collections
+
+
 
 ## JDBC
 
